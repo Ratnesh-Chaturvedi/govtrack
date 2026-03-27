@@ -25,12 +25,13 @@ import { formatCurrency, cn } from '../lib/utils';
 
 interface ContractorDashboardProps {
   projects: Project[];
-  onUpdateProject: (id: string, updates: Partial<Project>) => void;
+  onUpdateProject: (id: string, updates: Partial<Project> | FormData) => void;
 }
 
 export const ContractorDashboard: React.FC<ContractorDashboardProps> = ({ projects, onUpdateProject }) => {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [updateForm, setUpdateForm] = useState<Partial<Project>>({});
+  const [proofFile, setProofFile] = useState<File | null>(null);
 
   const handleOpenUpdate = (project: Project) => {
     setEditingProject(project);
@@ -39,12 +40,18 @@ export const ContractorDashboard: React.FC<ContractorDashboardProps> = ({ projec
       expenses: project.expenses || 0,
       resourceUsage: project.resourceUsage || '',
     });
+    setProofFile(null);
   };
 
   const handleSaveUpdate = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingProject) {
-      onUpdateProject(editingProject.id, updateForm);
+      const formData = new FormData();
+      formData.set('progress', String(typeof updateForm.progress === 'string' ? Number(updateForm.progress) : updateForm.progress ?? 0));
+      formData.set('expenses', String(typeof updateForm.expenses === 'string' ? Number(updateForm.expenses) : updateForm.expenses ?? 0));
+      if (updateForm.resourceUsage) formData.set('resourceUsage', updateForm.resourceUsage);
+      if (proofFile) formData.set('proof', proofFile);
+      onUpdateProject(editingProject.id, formData as any);
       setEditingProject(null);
     }
   };
@@ -318,7 +325,7 @@ export const ContractorDashboard: React.FC<ContractorDashboardProps> = ({ projec
                       <input 
                         type="number"
                         value={updateForm.expenses}
-                        onChange={(e) => setUpdateForm({ ...updateForm, expenses: parseInt(e.target.value) })}
+                        onChange={(e) => setUpdateForm({ ...updateForm, expenses: Number(e.target.value) })}
                         className="gov-input pl-10"
                       />
                     </div>
@@ -335,10 +342,33 @@ export const ContractorDashboard: React.FC<ContractorDashboardProps> = ({ projec
                     />
                   </div>
 
-                  <div className="p-6 rounded-xl border-2 border-dashed border-gov-blue/10 bg-gov-blue/[0.02] flex flex-col items-center justify-center gap-3 group cursor-pointer hover:border-gov-blue/30 hover:bg-gov-blue/[0.04] transition-all">
+                  <label className="p-6 rounded-xl border-2 border-dashed border-gov-blue/10 bg-gov-blue/[0.02] flex flex-col items-center justify-center gap-3 group cursor-pointer hover:border-gov-blue/30 hover:bg-gov-blue/[0.04] transition-all">
                     <FileUp className="w-6 h-6 text-gov-blue/20 group-hover:text-gov-blue transition-colors" />
                     <p className="text-[9px] font-bold uppercase tracking-widest text-gov-blue/40">Upload Work Verification Proof</p>
-                  </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setProofFile(e.target.files?.[0] || null)}
+                      className="hidden"
+                    />
+                    <span className="text-[10px] text-gov-blue/50">Click to choose image</span>
+                    {proofFile && (
+                      <p className="text-[9px] text-gov-green font-bold uppercase tracking-widest">{proofFile.name}</p>
+                    )}
+                  </label>
+                  {editingProject?.proofUrl && (
+                    <div className="rounded-xl overflow-hidden border border-gov-blue/10 bg-white">
+                      <img
+                        src={editingProject.proofUrl}
+                        alt="Existing proof"
+                        className="w-full h-32 object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                      <div className="px-3 py-2 text-[9px] font-bold uppercase tracking-widest text-gov-blue/50">
+                        Current Proof On File
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-4 pt-2">

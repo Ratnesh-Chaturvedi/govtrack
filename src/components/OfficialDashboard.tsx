@@ -32,9 +32,13 @@ interface OfficialDashboardProps {
   budgets: BudgetAllocation[];
   complaints: Complaint[];
   onAddProject: (project: Project) => void;
-  onUpdateProject: (projectId: string, updates: Partial<Project>) => void;
+  onUpdateProject: (projectId: string, updates: Partial<Project> | FormData) => void;
   onUpdateComplaint: (complaintId: string, updates: Partial<Complaint>) => void;
   onUpdateBudget: (budgetId: string, updates: Partial<BudgetAllocation>) => void;
+  projectStats?: any;
+  complaintStats?: any;
+  budgetStats?: any;
+  contractors?: Array<{ id: string; fullName: string; companyName?: string; rating?: number }>;
 }
 
 export const OfficialDashboard: React.FC<OfficialDashboardProps> = ({ 
@@ -44,18 +48,29 @@ export const OfficialDashboard: React.FC<OfficialDashboardProps> = ({
   onAddProject,
   onUpdateProject,
   onUpdateComplaint,
-  onUpdateBudget
+  onUpdateBudget,
+  projectStats,
+  complaintStats,
+  budgetStats,
+  contractors = []
 }) => {
   const [activeTab, setActiveTab] = useState<'projects' | 'budgets' | 'complaints' | 'contractors'>('projects');
   const [showSanctionModal, setShowSanctionModal] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedContractorId, setSelectedContractorId] = useState('');
+
+  const totalBudget = projectStats?.totalBudget ?? projects.reduce((sum, p) => sum + (p.budget || 0), 0);
+  const activeProjects = projectStats?.activeProjects ?? projects.length;
+  const riskAlerts = projectStats?.highRiskProjects ?? projects.filter(p => p.corruptionRisk === 'high').length;
+  const resolutionRate = complaintStats?.resolutionRate ? Number(complaintStats.resolutionRate) : null;
+  const formatCr = (amount: number) => `₹${(amount / 10000000).toFixed(1)} Cr`;
 
   const stats = [
-    { label: 'Total Budget', value: '₹4,200 Cr', change: '+12%', trend: 'up' },
-    { label: 'Active Projects', value: projects.length.toString(), change: '+5', trend: 'up' },
-    { label: 'Risk Alerts', value: projects.filter(p => p.corruptionRisk === 'high').length.toString(), change: '-2', trend: 'down' },
-    { label: 'Resolution Rate', value: '94%', change: '+3%', trend: 'up' },
+    { label: 'Total Budget', value: formatCr(totalBudget), change: 'Live', trend: 'up' },
+    { label: 'Active Projects', value: activeProjects.toString(), change: 'Live', trend: 'up' },
+    { label: 'Risk Alerts', value: riskAlerts.toString(), change: 'Live', trend: 'down' },
+    { label: 'Resolution Rate', value: `${Math.round(resolutionRate ?? 0)}%`, change: 'Live', trend: 'up' },
   ];
 
   const filteredProjects = projects.filter(p => 
@@ -66,17 +81,26 @@ export const OfficialDashboard: React.FC<OfficialDashboardProps> = ({
   const handleSanctionSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    
+    const contractorId = (formData.get('contractorId') as string) || selectedContractorId;
+    const contractor = contractors.find((c) => c.id === contractorId);
+    if (!contractor) {
+      alert('Please select a valid contractor');
+      return;
+    }
+
+    const budgetCr = Number(formData.get('budget'));
+    const budgetInr = Number.isFinite(budgetCr) ? budgetCr * 10000000 : 0;
+
     const newProject: Project = {
       id: editingProject?.id || Math.random().toString(36).substr(2, 9),
       title: formData.get('title') as string,
       description: formData.get('description') as string,
       sector: formData.get('sector') as any,
-      budget: Number(formData.get('budget')),
+      budget: budgetInr,
       spent: editingProject?.spent || 0,
       status: editingProject?.status || 'sanctioned',
-      contractorId: formData.get('contractorId') as string,
-      contractorName: formData.get('contractorName') as string,
+      contractorId,
+      contractorName: contractor.companyName || contractor.fullName,
       department: formData.get('department') as string,
       location: {
         lat: 28.6139,
@@ -99,6 +123,7 @@ export const OfficialDashboard: React.FC<OfficialDashboardProps> = ({
     
     setShowSanctionModal(false);
     setEditingProject(null);
+    setSelectedContractorId('');
   };
 
   return (
@@ -108,7 +133,7 @@ export const OfficialDashboard: React.FC<OfficialDashboardProps> = ({
         <div>
           <div className="flex items-center gap-2 text-gov-saffron text-xs font-bold uppercase tracking-widest mb-2">
             <Building2 className="w-4 h-4" />
-            Government of India • Ministry of Public Works
+            Government of India â€¢ Ministry of Public Works
           </div>
           <h1 className="text-4xl font-display font-bold text-gov-blue tracking-tight">
             Administrative Command Dashboard
@@ -150,7 +175,7 @@ export const OfficialDashboard: React.FC<OfficialDashboardProps> = ({
           </div>
           <div className="flex items-center gap-6">
             <div className="text-center">
-              <p className="text-2xl font-display font-bold text-gov-saffron">₹4,200 Cr</p>
+              <p className="text-2xl font-display font-bold text-gov-saffron">â‚¹4,200 Cr</p>
               <p className="text-[8px] font-bold uppercase tracking-widest text-white/40">Total Oversight</p>
             </div>
             <div className="w-[1px] h-10 bg-white/10" />
@@ -298,8 +323,21 @@ export const OfficialDashboard: React.FC<OfficialDashboardProps> = ({
                         </div>
                         <div className="flex justify-between text-[9px] font-bold uppercase tracking-widest">
                           <span className="text-gov-blue/40">Expenditure</span>
-                          <span className="text-gov-blue">₹{(project.spent / 10000000).toFixed(1)} / ₹{(project.budget / 10000000).toFixed(1)} Cr</span>
+                          <span className="text-gov-blue">â‚¹{(project.spent / 10000000).toFixed(1)} / â‚¹{(project.budget / 10000000).toFixed(1)} Cr</span>
                         </div>
+                        {project.proofUrl && (
+                          <div className="mt-3 rounded-xl border border-gov-blue/10 overflow-hidden bg-gov-bg">
+                            <img
+                              src={project.proofUrl}
+                              alt="Work verification proof"
+                              className="w-full h-32 object-cover"
+                              referrerPolicy="no-referrer"
+                            />
+                            <div className="px-3 py-2 text-[9px] font-bold uppercase tracking-widest text-gov-blue/50">
+                              Work Verification Proof
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex items-center gap-2">
@@ -354,11 +392,11 @@ export const OfficialDashboard: React.FC<OfficialDashboardProps> = ({
                     <div className="flex justify-between items-end">
                       <div className="space-y-1">
                         <p className="text-[10px] font-bold uppercase tracking-widest text-gov-blue/40">Allocated Funds</p>
-                        <p className="text-2xl font-display font-bold text-gov-blue">₹{(budget.allocatedAmount / 10000000).toFixed(1)} Cr</p>
+                        <p className="text-2xl font-display font-bold text-gov-blue">â‚¹{(budget.allocatedAmount / 10000000).toFixed(1)} Cr</p>
                       </div>
                       <div className="text-right space-y-1">
                         <p className="text-[10px] font-bold uppercase tracking-widest text-gov-blue/40">Total Sector Pool</p>
-                        <p className="text-lg font-display font-bold text-gov-blue/60">₹{(budget.totalAmount / 10000000).toFixed(1)} Cr</p>
+                        <p className="text-lg font-display font-bold text-gov-blue/60">â‚¹{(budget.totalAmount / 10000000).toFixed(1)} Cr</p>
                       </div>
                     </div>
 
@@ -371,7 +409,7 @@ export const OfficialDashboard: React.FC<OfficialDashboardProps> = ({
 
                     <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gov-blue/40">
                       <span>Utilization: {((budget.allocatedAmount / budget.totalAmount) * 100).toFixed(1)}%</span>
-                      <span>Unallocated: ₹{((budget.totalAmount - budget.allocatedAmount) / 10000000).toFixed(1)} Cr</span>
+                      <span>Unallocated: â‚¹{((budget.totalAmount - budget.allocatedAmount) / 10000000).toFixed(1)} Cr</span>
                     </div>
                   </div>
 
@@ -415,6 +453,14 @@ export const OfficialDashboard: React.FC<OfficialDashboardProps> = ({
                       </div>
                       <h4 className="text-lg font-bold text-gov-blue">{complaint.projectName || 'General Grievance'}</h4>
                       <p className="text-gov-blue/70 text-sm leading-relaxed">{complaint.description}</p>
+                      {complaint.imageUrl && (
+                        <img
+                          src={complaint.imageUrl}
+                          alt="Grievance evidence"
+                          className="w-full h-28 object-cover rounded-lg border border-gov-blue/10"
+                          referrerPolicy="no-referrer"
+                        />
+                      )}
                       <div className="flex items-center gap-4 text-[10px] font-bold text-gov-blue/30 uppercase tracking-wider">
                         <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {complaint.userName}</span>
                         <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {new Date(complaint.timestamp).toLocaleDateString()}</span>
@@ -452,53 +498,67 @@ export const OfficialDashboard: React.FC<OfficialDashboardProps> = ({
               animate={{ opacity: 1 }}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
-              {[
-                { id: 'CON-001', name: 'Skyline Infrastructure', projects: 4, rating: 4.8, status: 'Active', trustScore: 92 },
-                { id: 'CON-002', name: 'Global Tech Solutions', projects: 2, rating: 4.2, status: 'Active', trustScore: 85 },
-                { id: 'CON-003', name: 'Urban Development Corp', projects: 7, rating: 3.9, status: 'Under Review', trustScore: 68 },
-                { id: 'CON-004', name: 'Green Build India', projects: 1, rating: 4.5, status: 'Active', trustScore: 89 },
-              ].map((contractor) => (
-                <div key={contractor.id} className="gov-card p-6 space-y-5 group">
-                  <div className="flex items-center justify-between">
-                    <div className="w-10 h-10 rounded-lg bg-gov-blue/5 flex items-center justify-center text-gov-blue group-hover:bg-gov-blue group-hover:text-white transition-all">
-                      <Building2 className="w-5 h-5" />
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <span className={cn(
-                        "px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border",
-                        contractor.status === 'Active' ? "bg-gov-green/10 text-gov-green border-gov-green/20" : "bg-gov-saffron/10 text-gov-saffron border-gov-saffron/20"
-                      )}>
-                        {contractor.status}
-                      </span>
-                      <span className="text-[8px] font-bold text-gov-blue/20 mt-1 uppercase tracking-tighter">Trust Score: {contractor.trustScore}%</span>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-bold text-gov-blue">{contractor.name}</h4>
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-gov-blue/30">Contract ID: {contractor.id}</p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 py-4 border-y border-gov-blue/5">
-                    <div>
-                      <p className="text-[9px] font-bold uppercase tracking-widest text-gov-blue/30 mb-1">Projects</p>
-                      <p className="text-lg font-bold text-gov-blue">{contractor.projects}</p>
-                    </div>
-                    <div>
-                      <p className="text-[9px] font-bold uppercase tracking-widest text-gov-blue/30 mb-1">Rating</p>
-                      <p className="text-lg font-bold text-gov-saffron">{contractor.rating}/5.0</p>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => {
-                      setEditingProject(null);
-                      setShowSanctionModal(true);
-                      // Pre-fill contractor info if needed
-                    }}
-                    className="w-full py-3 rounded-xl bg-gov-blue text-white text-xs font-bold uppercase tracking-widest hover:bg-gov-blue/90 transition-all shadow-sm hover:shadow-md"
-                  >
-                    Assign New Project
-                  </button>
+              {contractors.length === 0 ? (
+                <div className="gov-card p-8 col-span-full text-center text-sm text-gov-blue/60">
+                  No contractors found.
                 </div>
-              ))}
+              ) : (
+                contractors.map((contractor) => {
+                  const assignedProjects = projects.filter((p) => p.contractorId === contractor.id);
+                  return (
+                  <div key={contractor.id} className="gov-card p-6 space-y-5 group">
+                    <div className="flex items-center justify-between">
+                      <div className="w-10 h-10 rounded-lg bg-gov-blue/5 flex items-center justify-center text-gov-blue group-hover:bg-gov-blue group-hover:text-white transition-all">
+                        <Building2 className="w-5 h-5" />
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className={cn(
+                          "px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border",
+                          "bg-gov-green/10 text-gov-green border-gov-green/20"
+                        )}>
+                          Active
+                        </span>
+                        <span className="text-[8px] font-bold text-gov-blue/20 mt-1 uppercase tracking-tighter">Rating: {contractor.rating || 0}/5</span>
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-bold text-gov-blue">{contractor.companyName || contractor.fullName}</h4>
+                      <p className="text-[9px] font-bold uppercase tracking-widest text-gov-blue/30">Contract ID: {contractor.id}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 py-4 border-y border-gov-blue/5">
+                      <div>
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-gov-blue/30 mb-1">Projects</p>
+                        <p className="text-lg font-bold text-gov-blue">{assignedProjects.length}</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-gov-blue/30 mb-1">Rating</p>
+                        <p className="text-lg font-bold text-gov-saffron">{contractor.rating || 0}/5.0</p>
+                      </div>
+                    </div>
+                    {assignedProjects.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-gov-blue/30">Assigned Projects</p>
+                        <ul className="text-xs text-gov-blue/70 space-y-1">
+                          {assignedProjects.slice(0, 2).map((proj) => (
+                            <li key={proj.id} className="truncate">{proj.title}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <button 
+                      onClick={() => {
+                        setSelectedContractorId(contractor.id);
+                        setEditingProject(null);
+                        setShowSanctionModal(true);
+                      }}
+                      className="w-full py-3 rounded-xl bg-gov-blue text-white text-xs font-bold uppercase tracking-widest hover:bg-gov-blue/90 transition-all shadow-sm hover:shadow-md"
+                    >
+                      Assign New Project
+                    </button>
+                  </div>
+                  );
+                })
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -585,8 +645,16 @@ export const OfficialDashboard: React.FC<OfficialDashboardProps> = ({
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-gov-blue/40">Budget (INR)</label>
-                      <input name="budget" type="number" defaultValue={editingProject?.budget} required className="gov-input" placeholder="Amount in ₹" />
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-gov-blue/40">Budget (Cr)</label>
+                      <input
+                        name="budget"
+                        type="number"
+                        step="0.1"
+                        defaultValue={editingProject?.budget ? (editingProject.budget / 10000000) : ''}
+                        required
+                        className="gov-input"
+                        placeholder="Amount in Cr"
+                      />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-gov-blue/40">Location</label>
@@ -602,11 +670,35 @@ export const OfficialDashboard: React.FC<OfficialDashboardProps> = ({
                     <div className="grid grid-cols-1 gap-3">
                       <div className="space-y-1">
                         <label className="text-[9px] font-bold uppercase tracking-widest text-gov-blue/40">Contractor ID</label>
-                        <input name="contractorId" defaultValue={editingProject?.contractorId} required className="gov-input py-2.5" placeholder="CON-XXXXX" />
+                        <select
+                          name="contractorId"
+                          required
+                          className="gov-input py-2.5"
+                          value={selectedContractorId || editingProject?.contractorId || ''}
+                          onChange={(e) => setSelectedContractorId(e.target.value)}
+                        >
+                          <option value="">Select Contractor</option>
+                          {contractors.map((contractor) => (
+                            <option key={contractor.id} value={contractor.id}>
+                              {contractor.id} {contractor.companyName ? `- ${contractor.companyName}` : `- ${contractor.fullName}`}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                       <div className="space-y-1">
                         <label className="text-[9px] font-bold uppercase tracking-widest text-gov-blue/40">Contractor Name</label>
-                        <input name="contractorName" defaultValue={editingProject?.contractorName} required className="gov-input py-2.5" placeholder="Organization Name" />
+                        <input
+                          name="contractorName"
+                          value={
+                            contractors.find((c) => c.id === (selectedContractorId || editingProject?.contractorId))?.companyName ||
+                            contractors.find((c) => c.id === (selectedContractorId || editingProject?.contractorId))?.fullName ||
+                            editingProject?.contractorName ||
+                            ''
+                          }
+                          readOnly
+                          className="gov-input py-2.5"
+                          placeholder="Organization Name"
+                        />
                       </div>
                     </div>
                   </div>

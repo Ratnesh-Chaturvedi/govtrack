@@ -3,94 +3,287 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { UserRole, Project, BudgetAllocation, Complaint } from './types';
-import { MOCK_PROJECTS, MOCK_BUDGETS, MOCK_COMPLAINTS } from './constants';
+import { UserRole, Project, BudgetAllocation, Complaint, RTIRequest } from './types';
 import { Sidebar, Navbar } from './components/Layout';
 import { CitizenDashboard } from './components/CitizenDashboard';
 import { OfficialDashboard } from './components/OfficialDashboard';
 import { MediaDashboard } from './components/MediaDashboard';
 import { ContractorDashboard } from './components/ContractorDashboard';
-import { LandingPage } from './components/LandingPage';
+import { LandingPageWithAuth } from './components/LandingPageWithAuth';
 import { RTIPortal } from './components/RTIPortal';
 import { Community } from './components/Community';
 import { PlatformInfo } from './components/PlatformInfo';
-import { ShieldAlert, Info, LogOut, Users, UserPlus } from 'lucide-react';
+import { ShieldAlert, LogOut } from 'lucide-react';
 import { cn } from './lib/utils';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import apiClient from './lib/apiClient';
+import { mapBudget, mapComplaint, mapComplaintCategoryToApi, mapProject, mapRTIRequest } from './lib/apiAdapters';
 
 type ViewState = 'landing' | 'login' | 'dashboard';
 
-export default function App() {
-  const [view, setView] = useState<ViewState>('landing');
-  const [role, setRole] = useState<UserRole | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
+// Inner App component that uses auth context
+function AppContent() {
+  const { user, logout } = useAuth();
+  const [view, setView] = useState<ViewState>(user ? 'dashboard' : 'landing');
+  const [role, setRole] = useState<UserRole | null>(user?.role as UserRole || null);
+  const [userId, setUserId] = useState<string | null>(user?.identificationId || user?.id || null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isDataLoading, setIsDataLoading] = useState(false);
+  const [dataError, setDataError] = useState<string | null>(null);
 
   // Global State
-  const [projects, setProjects] = useState<Project[]>(MOCK_PROJECTS);
-  const [budgets, setBudgets] = useState<BudgetAllocation[]>(MOCK_BUDGETS);
-  const [complaints, setComplaints] = useState<Complaint[]>(MOCK_COMPLAINTS);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [budgets, setBudgets] = useState<BudgetAllocation[]>([]);
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [projectStats, setProjectStats] = useState<any>(null);
+  const [complaintStats, setComplaintStats] = useState<any>(null);
+  const [budgetStats, setBudgetStats] = useState<any>(null);
+  const [rtiStats, setRtiStats] = useState<any>(null);
+  const [rtiRequests, setRtiRequests] = useState<RTIRequest[]>([]);
+  const [contractors, setContractors] = useState<any[]>([]);
 
   useEffect(() => {
     setIsLoaded(true);
   }, []);
 
-  // AI Analysis Simulation
   useEffect(() => {
-    const analyzeProjects = () => {
-      setProjects(prev => prev.map(p => {
-        let risk: 'low' | 'medium' | 'high' = 'low';
-        const factors: string[] = [];
+    if (user) {
+      setView('dashboard');
+      setRole(user.role as UserRole);
+      setUserId(user.identificationId || user.id || null);
+    } else {
+      setView('landing');
+      setRole(null);
+      setUserId(null);
+      setProjects([]);
+      setBudgets([]);
+      setComplaints([]);
+    }
+  }, [user]);
 
-        if (p.spent > p.budget) {
-          risk = 'high';
-          factors.push('Overspending detected');
-        } else if (p.progress < 50 && new Date(p.endDate) < new Date()) {
-          risk = 'high';
-          factors.push('Critical delay risk');
-        } else if (p.citizenFeedback.some(f => f.rating <= 2)) {
-          risk = 'medium';
-          factors.push('Poor citizen feedback');
-        }
+  const loadData = useCallback(async () => {
+    if (!user) return;
+    setIsDataLoading(true);
+    setDataError(null);
+    try {
+      const userIdentifier = user.identificationId || user.id;
+      const projectFilters: Record<string, string> = {};
+      const complaintFilters: Record<string, string> = {};
+      const budgetFilters: Record<string, string> = {};
 
-        return { ...p, corruptionRisk: risk, riskFactors: factors };
-      }));
-    };
+      if (user.role === 'official') {
+        projectFilters.officialId = userIdentifier;
+        budgetFilters.officialId = userIdentifier;
+      }
 
-    analyzeProjects();
-  }, [projects.length, projects.map(p => p.spent).join(','), projects.map(p => p.progress).join(',')]);
+      if (user.role === 'contractor') {
+        projectFilters.contractorId = userIdentifier;
+      }
 
-  const handleLogin = (selectedRole: UserRole, id: string) => {
-    setRole(selectedRole);
-    setUserId(id);
-    setView('dashboard');
-    setActiveTab('dashboard');
-  };
+      if (user.role === 'citizen') {
+        complaintFilters.userId = userIdentifier;
+      }
+
+      const [projectsRes, complaintsRes, budgetsRes] = await Promise.all([
+        apiClient.getProjects(projectFilters),
+        apiClient.getComplaints(complaintFilters),
+        apiClient.getBudgets(budgetFilters),
+      ]);
+
+      setProjects((projectsRes.data || []).map(mapProject));
+      setComplaints((complaintsRes.data || []).map(mapComplaint));
+      setBudgets((budgetsRes.data || []).map(mapBudget));
+
+      const projectIds = (projectsRes.data || []).map((p: any) => p._id || p.id).filter(Boolean);
+      const rtiFilters: Record<string, string> = {};
+      if (user.role === 'citizen') {
+        rtiFilters.requesterId = userIdentifier;
+      } else if (user.role === 'official' && projectIds.length > 0) {
+        rtiFilters.projectIds = projectIds.join(',');
+      }
+
+      const rtiStatsFilters: Record<string, string> = {};
+
+      const [projectStatsRes, complaintStatsRes, budgetStatsRes, rtiStatsRes, rtiRequestsRes, contractorsRes] = await Promise.all([
+        apiClient.getProjectStats(projectFilters),
+        apiClient.getComplaintStats(),
+        apiClient.getBudgetStats(budgetFilters),
+        apiClient.getRTIStats(rtiStatsFilters),
+        apiClient.getRTIRequests(rtiFilters),
+        user.role === 'official' ? apiClient.getContractors() : Promise.resolve({ data: [] }),
+      ]);
+
+      setProjectStats(projectStatsRes.data || null);
+      setComplaintStats(complaintStatsRes.data || null);
+      setBudgetStats(budgetStatsRes.data || null);
+      setRtiStats(rtiStatsRes.data || null);
+      setRtiRequests((rtiRequestsRes.data || []).map(mapRTIRequest));
+      setContractors(contractorsRes.data || []);
+    } catch (err: any) {
+      setDataError(err?.message || 'Failed to load data');
+    } finally {
+      setIsDataLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Backend already supplies risk metrics.
 
   const handleLogout = () => {
+    logout(); // Call auth context logout
     setView('landing');
     setRole(null);
     setUserId(null);
   };
 
   // Actions
-  const addProject = (project: Project) => setProjects([...projects, project]);
-  const updateProject = (id: string, updates: Partial<Project>) => {
-    setProjects(projects.map(p => p.id === id ? { ...p, ...updates } : p));
+  const addProject = async (project: Project) => {
+    if (!user) return;
+    try {
+      const userIdentifier = user.identificationId || user.id;
+      const response = await apiClient.createProject({
+        title: project.title,
+        description: project.description,
+        sector: project.sector,
+        budget: project.budget,
+        location: project.location,
+        startDate: project.startDate,
+        endDate: project.endDate,
+        department: project.department,
+        contractorId: project.contractorId,
+        contractorName: project.contractorName,
+        officialId: userIdentifier,
+      });
+      const created = mapProject(response.data);
+      setProjects((prev) => [created, ...prev]);
+    } catch (err: any) {
+      setDataError(err?.message || 'Failed to create project');
+    }
   };
-  const addComplaint = (complaint: Complaint) => setComplaints([complaint, ...complaints]);
-  const updateComplaint = (id: string, updates: Partial<Complaint>) => {
-    setComplaints(complaints.map(c => c.id === id ? { ...c, ...updates } : c));
+
+  const updateProject = async (id: string, updates: Partial<Project> | FormData) => {
+    if (!user) return;
+    try {
+      const statusFields = ['status', 'progress', 'expenses', 'resourceUsage'];
+      const updateKeys = updates instanceof FormData ? Array.from(updates.keys()) : Object.keys(updates);
+      const hasOnlyStatusFields = updateKeys.every((key) => statusFields.includes(key));
+      const isStatusUpdate =
+        hasOnlyStatusFields &&
+        (updates instanceof FormData ||
+          typeof (updates as any).progress === 'number' ||
+          typeof (updates as any).expenses === 'number' ||
+          typeof (updates as any).resourceUsage === 'string' ||
+          typeof (updates as any).status === 'string');
+
+      const response = isStatusUpdate
+        ? await apiClient.updateProjectStatus(
+            id,
+            updates instanceof FormData
+              ? updates
+              : {
+                  status: updates.status,
+                  progress: updates.progress,
+                  expenses: updates.expenses,
+                  resourceUsage: updates.resourceUsage,
+                }
+          )
+        : await apiClient.updateProject(id, {
+            title: (updates as any).title,
+            description: (updates as any).description,
+            sector: (updates as any).sector,
+            budget: (updates as any).budget,
+            spent: (updates as any).spent,
+            contractorId: (updates as any).contractorId,
+            contractorName: (updates as any).contractorName,
+            department: (updates as any).department,
+            location: (updates as any).location,
+            startDate: (updates as any).startDate,
+            endDate: (updates as any).endDate,
+            corruptionRisk: (updates as any).corruptionRisk,
+            riskFactors: (updates as any).riskFactors,
+          });
+
+      const updated = mapProject(response.data);
+      setProjects((prev) => prev.map((p) => (p.id === id ? updated : p)));
+    } catch (err: any) {
+      setDataError(err?.message || 'Failed to update project');
+    }
   };
-  const updateBudget = (id: string, updates: Partial<BudgetAllocation>) => {
-    setBudgets(budgets.map(b => b.id === id ? { ...b, ...updates } : b));
+
+  const addComplaint = async (complaint: Complaint | FormData) => {
+    if (!user) return;
+    try {
+      const userIdentifier = user.identificationId || user.id;
+      const payload = complaint instanceof FormData
+        ? complaint
+        : {
+            userId: userIdentifier,
+            userName: user.fullName,
+            projectId: complaint.projectId,
+            projectName: complaint.projectName,
+            category: mapComplaintCategoryToApi(complaint.category),
+            description: complaint.description,
+            location: complaint.location,
+          };
+
+      if (payload instanceof FormData) {
+        payload.set('userId', userIdentifier);
+        payload.set('userName', user.fullName);
+      }
+
+      const response = await apiClient.createComplaint(payload);
+      const created = mapComplaint(response.data);
+      setComplaints((prev) => [created, ...prev]);
+    } catch (err: any) {
+      setDataError(err?.message || 'Failed to file complaint');
+    }
+  };
+
+  const updateComplaint = async (id: string, updates: Partial<Complaint> | FormData) => {
+    try {
+      const payload = updates instanceof FormData
+        ? updates
+        : {
+            status: updates.status,
+            resolution: updates.resolution,
+            description: updates.description,
+            location: updates.location,
+            category: updates.category,
+            imageUrl: updates.imageUrl,
+          };
+
+      const response = await apiClient.updateComplaintStatus(id, payload);
+      const updated = mapComplaint(response.data);
+      setComplaints((prev) => prev.map((c) => (c.id === id ? updated : c)));
+    } catch (err: any) {
+      setDataError(err?.message || 'Failed to update complaint');
+    }
+  };
+
+  const updateBudget = async (id: string, updates: Partial<BudgetAllocation>) => {
+    try {
+      const response = await apiClient.updateBudget(id, {
+        allocatedAmount: updates.allocatedAmount,
+        totalAmount: updates.totalAmount,
+        year: updates.year,
+        sector: updates.sector,
+      });
+      const updated = mapBudget(response.data);
+      setBudgets((prev) => prev.map((b) => (b.id === id ? updated : b)));
+    } catch (err: any) {
+      setDataError(err?.message || 'Failed to update budget');
+    }
   };
 
   const renderContent = () => {
     if (activeTab === 'transparency') {
-      return <RTIPortal projects={projects} />;
+      return <RTIPortal projects={projects} rtiStats={rtiStats} rtiRequests={rtiRequests} />;
     }
     if (activeTab === 'community') {
       return <Community projects={projects} />;
@@ -108,22 +301,30 @@ export default function App() {
             budgets={budgets} 
             complaints={complaints.filter(c => c.userId === userId)}
             onAddComplaint={addComplaint}
+            onUpdateComplaint={updateComplaint}
+            projectStats={projectStats}
+            complaintStats={complaintStats}
+            budgetStats={budgetStats}
           />
         );
       case 'official':
         return (
-          <OfficialDashboard 
-            projects={projects} 
-            budgets={budgets} 
-            complaints={complaints}
-            onUpdateProject={updateProject}
-            onAddProject={addProject}
-            onUpdateComplaint={updateComplaint}
-            onUpdateBudget={updateBudget}
-          />
+            <OfficialDashboard 
+              projects={projects} 
+              budgets={budgets} 
+              complaints={complaints}
+              onUpdateProject={updateProject}
+              onAddProject={addProject}
+              onUpdateComplaint={updateComplaint}
+              onUpdateBudget={updateBudget}
+              projectStats={projectStats}
+              complaintStats={complaintStats}
+              budgetStats={budgetStats}
+              contractors={contractors}
+            />
         );
       case 'media':
-        return <MediaDashboard projects={projects} />;
+        return <MediaDashboard projects={projects} rtiStats={rtiStats} />;
       case 'contractor':
         return (
           <ContractorDashboard 
@@ -156,9 +357,7 @@ export default function App() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <LandingPage 
-              onLogin={handleLogin} 
-            />
+            <LandingPageWithAuth />
           </motion.div>
         ) : (
           <motion.div
@@ -168,6 +367,13 @@ export default function App() {
             exit={{ opacity: 0 }}
             className="flex"
           >
+            {isDataLoading && (
+              <div className="fixed inset-0 z-[200] bg-black/20 backdrop-blur-sm flex items-center justify-center">
+                <div className="bg-white rounded-lg p-6 shadow-xl text-gov-blue font-semibold">
+                  Loading live data...
+                </div>
+              </div>
+            )}
             {role && (
               <>
                 <Sidebar 
@@ -179,6 +385,11 @@ export default function App() {
                   <Navbar role={role} />
                   <main className="pl-64 pt-20 min-h-screen">
                     <div className="p-8 max-w-7xl mx-auto">
+                      {dataError && (
+                        <div className="mb-6 p-4 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm">
+                          {dataError}
+                        </div>
+                      )}
                       <div className="mb-8 flex items-center justify-between p-6 gov-card bg-white">
                         <div className="flex items-center gap-4">
                           <div className="p-3 rounded-xl bg-gov-blue/5 text-gov-blue">
@@ -249,5 +460,14 @@ export default function App() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+// Wrapper component with AuthProvider
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }

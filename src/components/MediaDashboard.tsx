@@ -20,18 +20,30 @@ import { cn } from '../lib/utils';
 
 interface MediaDashboardProps {
   projects: Project[];
+  rtiStats?: any;
 }
 
-export const MediaDashboard: React.FC<MediaDashboardProps> = ({ projects }) => {
+export const MediaDashboard: React.FC<MediaDashboardProps> = ({ projects, rtiStats }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const highRiskProjects = projects.filter(p => p.corruptionRisk === 'high');
+  const totalRti = rtiStats?.totalRequests ?? 0;
+  const pendingRti = rtiStats?.pendingRequests ?? 0;
+  const approvedRti = rtiStats?.approvedRequests ?? 0;
+  const rejectedRti = rtiStats?.rejectedRequests ?? 0;
+  const dataPoints = (projects.length * 1000).toLocaleString();
+  const today = new Date().toLocaleDateString();
+  const rtiCards = [
+    { title: 'Pending Requests', status: 'Pending', count: pendingRti },
+    { title: 'Approved Requests', status: 'Approved', count: approvedRti },
+    { title: 'Rejected Requests', status: 'Rejected', count: rejectedRti },
+  ];
 
   const stats = [
     { label: 'High Risk Projects', value: highRiskProjects.length.toString(), icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-50' },
-    { label: 'RTI Requests', value: '42', icon: FileText, color: 'text-gov-blue', bg: 'bg-gov-blue/5' },
-    { label: 'Data Points', value: '1.2M', icon: BarChart3, color: 'text-gov-saffron', bg: 'bg-gov-saffron/5' },
-    { label: 'Public Interest', value: 'High', icon: TrendingUp, color: 'text-gov-green', bg: 'bg-gov-green/5' },
+    { label: 'RTI Requests', value: totalRti.toString(), icon: FileText, color: 'text-gov-blue', bg: 'bg-gov-blue/5' },
+    { label: 'Data Points', value: `${dataPoints}`, icon: BarChart3, color: 'text-gov-saffron', bg: 'bg-gov-saffron/5' },
+    { label: 'Public Interest', value: totalRti > 100 ? 'High' : 'Moderate', icon: TrendingUp, color: 'text-gov-green', bg: 'bg-gov-green/5' },
   ];
 
   return (
@@ -177,25 +189,27 @@ export const MediaDashboard: React.FC<MediaDashboardProps> = ({ projects }) => {
           <div className="gov-card p-10 space-y-8">
             <h3 className="text-2xl font-bold text-gov-blue">RTI Portal Status</h3>
             <div className="space-y-6">
-              {[
-                { title: 'Highway Expansion Audit', status: 'In Review', date: '2024-03-15' },
-                { title: 'Smart City Fund Allocation', status: 'Approved', date: '2024-03-10' },
-                { title: 'Bridge Safety Report', status: 'Pending', date: '2024-03-05' },
-              ].map((rti, i) => (
+              {rtiCards.map((rti, i) => (
                 <div key={i} className="p-6 rounded-xl bg-gov-blue/5 border border-gov-blue/5 space-y-3 group hover:bg-gov-blue/10 transition-colors">
                   <div className="flex items-center justify-between mb-2">
                     <span className={cn(
                       "px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border",
-                      rti.status === 'Approved' ? "bg-gov-green/10 text-gov-green border-gov-green/20" : "bg-gov-saffron/10 text-gov-saffron border-gov-saffron/20"
+                      rti.status === 'Approved'
+                        ? "bg-gov-green/10 text-gov-green border-gov-green/20"
+                        : rti.status === 'Rejected'
+                        ? "bg-red-50 text-red-600 border-red-100"
+                        : "bg-gov-saffron/10 text-gov-saffron border-gov-saffron/20"
                     )}>
                       {rti.status}
                     </span>
-                    <span className="text-[10px] text-gov-blue/30 font-bold uppercase tracking-widest">{rti.date}</span>
+                    <span className="text-[10px] text-gov-blue/30 font-bold uppercase tracking-widest">{today}</span>
                   </div>
-                  <h5 className="font-bold text-sm text-gov-blue group-hover:text-gov-saffron transition-colors">{rti.title}</h5>
-                  <button className="text-[10px] font-bold uppercase tracking-widest text-gov-blue/40 hover:text-gov-blue transition-colors flex items-center gap-2">
-                    View Document <ArrowUpRight className="w-3 h-3" />
-                  </button>
+                  <h5 className="font-bold text-sm text-gov-blue group-hover:text-gov-saffron transition-colors">
+                    {rti.title}
+                  </h5>
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-gov-blue/40">
+                    Count: {rti.count}
+                  </div>
                 </div>
               ))}
             </div>

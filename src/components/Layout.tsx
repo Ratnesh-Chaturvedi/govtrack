@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { UserRole } from '../types';
 import { cn } from '../lib/utils';
+import { useAuth } from '../context/AuthContext';
 
 interface SidebarProps {
   role: UserRole;
@@ -87,6 +88,9 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ role }) => {
+  const { user } = useAuth();
+  const displayName = user?.fullName || 'User';
+
   return (
     <header className="fixed top-0 left-64 right-0 h-16 bg-white border-b border-slate-200 z-40 px-8 shadow-sm">
       <div className="h-full flex items-center justify-between">
@@ -111,7 +115,7 @@ export const Navbar: React.FC<NavbarProps> = ({ role }) => {
           
           <div className="flex items-center gap-3 group cursor-pointer">
             <div className="text-right">
-              <p className="text-sm font-bold text-slate-800">Rahul Sharma</p>
+              <p className="text-sm font-bold text-slate-800">{displayName}</p>
               <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">{role}</p>
             </div>
             <div className="w-9 h-9 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center">

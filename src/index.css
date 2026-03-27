@@ -15,29 +15,43 @@
   body {
     @apply bg-gov-bg text-slate-900 antialiased selection:bg-gov-saffron selection:text-white overflow-x-hidden;
     font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
     @apply tracking-tight font-bold text-gov-blue;
   }
+
+  p {
+    @apply text-slate-700;
+  }
+
+  a {
+    @apply text-gov-blue hover:text-blue-900 transition-colors duration-300;
+  }
+
+  button {
+    @apply transition-all duration-300;
+  }
 }
 
 @layer components {
   .gov-card {
-    @apply bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300;
+    @apply bg-white border border-slate-200/80 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300;
   }
 
   .gov-button-primary {
-    @apply px-6 py-2.5 rounded-lg bg-gov-blue text-white font-semibold transition-all duration-200 hover:bg-blue-900 active:scale-95 shadow-sm;
+    @apply px-7 py-3 rounded-lg bg-gov-blue text-white font-semibold uppercase tracking-wide text-sm transition-all duration-200 hover:bg-blue-900 active:scale-95 shadow-lg shadow-gov-blue/25;
   }
 
   .gov-button-secondary {
-    @apply px-6 py-2.5 rounded-lg bg-white border border-slate-300 text-slate-700 font-semibold transition-all duration-200 hover:bg-slate-50 active:scale-95;
+    @apply px-7 py-3 rounded-lg bg-white border border-slate-300 text-slate-700 font-semibold uppercase tracking-wide text-sm transition-all duration-200 hover:bg-slate-50 active:scale-95;
   }
 
   .gov-input {
-    @apply w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-gov-blue/20 focus:border-gov-blue outline-none transition-all;
+    @apply w-full bg-white border border-slate-300 rounded-lg px-5 py-3 text-sm font-medium focus:ring-2 focus:ring-gov-blue/30 focus:border-gov-blue outline-none transition-all placeholder:text-slate-400;
   }
 
   .flag-gradient {

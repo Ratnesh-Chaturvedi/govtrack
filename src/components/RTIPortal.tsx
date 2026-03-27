@@ -11,14 +11,27 @@ import {
   AlertTriangle,
   ExternalLink
 } from 'lucide-react';
-import { Project } from '../types';
+import { Project, RTIRequest } from '../types';
 import { formatCurrency, cn } from '../lib/utils';
 
 interface RTIPortalProps {
   projects: Project[];
+  rtiStats?: any;
+  rtiRequests?: RTIRequest[];
 }
 
-export const RTIPortal: React.FC<RTIPortalProps> = ({ projects }) => {
+export const RTIPortal: React.FC<RTIPortalProps> = ({ projects, rtiStats, rtiRequests = [] }) => {
+  const derivedTotal = rtiRequests.length;
+  const derivedPending = rtiRequests.filter((r) => r.status === 'pending' || r.status === 'in-review').length;
+  const derivedResolved = rtiRequests.filter((r) => r.status === 'approved' || r.status === 'rejected').length;
+  const derivedAppeals = rtiRequests.filter((r) => r.status === 'rejected').length;
+
+  const totalRequests = (rtiStats?.totalRequests ?? 0) || derivedTotal;
+  const resolvedRequests = (rtiStats?.resolvedRequests ?? ((rtiStats?.approvedRequests ?? 0) + (rtiStats?.rejectedRequests ?? 0))) || derivedResolved;
+  const pendingRequests = (rtiStats?.pendingRequests ?? 0) || derivedPending;
+  const appealRequests = (rtiStats?.appealRequests ?? rtiStats?.rejectedRequests ?? 0) || derivedAppeals;
+  const projectMap = new Map(projects.map((p) => [p.id, p]));
+
   return (
     <div className="space-y-8">
       <div className="flex items-end justify-between">
@@ -41,10 +54,10 @@ export const RTIPortal: React.FC<RTIPortalProps> = ({ projects }) => {
             <h3 className="text-lg font-display font-bold text-gov-blue mb-4">RTI Statistics</h3>
             <div className="space-y-4">
               {[
-                { label: 'Total Requests', value: '1,240', icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
-                { label: 'Resolved', value: '1,102', icon: CheckCircle2, color: 'text-gov-green', bg: 'bg-gov-green/5' },
-                { label: 'Pending', value: '84', icon: Clock, color: 'text-gov-saffron', bg: 'bg-gov-saffron/5' },
-                { label: 'Appeals', value: '54', icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50' },
+                { label: 'Total Requests', value: totalRequests.toString(), icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
+                { label: 'Resolved', value: resolvedRequests.toString(), icon: CheckCircle2, color: 'text-gov-green', bg: 'bg-gov-green/5' },
+                { label: 'Pending', value: pendingRequests.toString(), icon: Clock, color: 'text-gov-saffron', bg: 'bg-gov-saffron/5' },
+                { label: 'Appeals', value: appealRequests.toString(), icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50' },
               ].map((stat) => (
                 <div key={stat.label} className="flex items-center justify-between p-3 rounded-xl bg-gov-bg border border-gov-blue/5">
                   <div className="flex items-center gap-3">
@@ -87,7 +100,7 @@ export const RTIPortal: React.FC<RTIPortalProps> = ({ projects }) => {
           </div>
 
           <div className="space-y-4">
-            {projects.map((project) => (
+            {rtiRequests.length === 0 && projects.length > 0 && projects.map((project) => (
               <div key={project.id} className="p-6 rounded-2xl bg-gov-bg border border-gov-blue/5 hover:border-gov-blue/20 transition-all group">
                 <div className="flex items-start justify-between mb-6">
                   <div>
@@ -141,6 +154,65 @@ export const RTIPortal: React.FC<RTIPortalProps> = ({ projects }) => {
                 </div>
               </div>
             ))}
+
+            {rtiRequests.map((request) => {
+              const project = request.projectId ? projectMap.get(request.projectId) : undefined;
+              const requestDate = request.submittedAt ? new Date(request.submittedAt).toLocaleDateString() : '—';
+              return (
+              <div key={request.id} className="p-6 rounded-2xl bg-gov-bg border border-gov-blue/5 hover:border-gov-blue/20 transition-all group">
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="px-2 py-0.5 rounded bg-gov-blue/10 text-[10px] font-bold text-gov-blue uppercase tracking-widest">{project?.department || 'RTI'}</span>
+                      <span className="w-1 h-1 rounded-full bg-gov-blue/20" />
+                      <span className="text-[10px] text-gov-blue/40 font-bold uppercase tracking-widest">ID: {request.id}</span>
+                    </div>
+                    <h4 className="text-lg font-bold text-gov-blue group-hover:text-gov-saffron transition-colors">{request.title}</h4>
+                  </div>
+                  <button className="p-2.5 rounded-xl bg-white border border-gov-blue/10 hover:bg-gov-blue hover:text-white transition-all shadow-sm">
+                    <Download className="w-4 h-4" />
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+                  <div>
+                    <p className="text-[10px] text-gov-blue/40 font-bold uppercase tracking-widest mb-1">Sanctioned Date</p>
+                    <p className="text-xs font-bold text-gov-blue">{requestDate}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-gov-blue/40 font-bold uppercase tracking-widest mb-1">Total Budget</p>
+                    <p className="text-xs font-bold text-gov-blue">{project ? formatCurrency(project.budget) : '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-gov-blue/40 font-bold uppercase tracking-widest mb-1">Contractor</p>
+                    <p className="text-xs font-bold text-gov-blue">{project?.contractorName || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-gov-blue/40 font-bold uppercase tracking-widest mb-1">Current Status</p>
+                    <div className="flex items-center gap-2">
+                      <div className={cn(
+                        "w-2 h-2 rounded-full",
+                        request.status === 'approved' ? 'bg-gov-green' : request.status === 'rejected' ? 'bg-red-500' : 'bg-gov-saffron'
+                      )} />
+                      <p className="text-xs font-bold text-gov-blue capitalize">{request.status}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-6 pt-6 border-t border-gov-blue/10">
+                  <button className="text-[10px] font-bold uppercase tracking-widest text-gov-blue/60 hover:text-gov-blue transition-colors flex items-center gap-2">
+                    View Full Audit Trail <ExternalLink className="w-3 h-3" />
+                  </button>
+                  <button className="text-[10px] font-bold uppercase tracking-widest text-gov-blue/60 hover:text-gov-blue transition-colors flex items-center gap-2">
+                    Download Vouchers <Download className="w-3 h-3" />
+                  </button>
+                  <button className="text-[10px] font-bold uppercase tracking-widest text-gov-blue/60 hover:text-gov-blue transition-colors flex items-center gap-2">
+                    Contractor Agreement <FileText className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+              );
+            })}
           </div>
         </div>
       </div>
