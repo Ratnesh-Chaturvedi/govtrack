@@ -330,7 +330,7 @@ export const OfficialDashboard: React.FC<OfficialDashboardProps> = ({
                             <img
                               src={project.proofUrl}
                               alt="Work verification proof"
-                              className="w-full h-32 object-cover"
+                              className="gov-image-inset"
                               referrerPolicy="no-referrer"
                             />
                             <div className="px-3 py-2 text-[9px] font-bold uppercase tracking-widest text-gov-blue/50">
@@ -379,53 +379,78 @@ export const OfficialDashboard: React.FC<OfficialDashboardProps> = ({
               key="budgets"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+              className="space-y-8"
             >
-              {budgets.map((budget) => (
-                <div key={budget.id} className="gov-card p-8 space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-bold text-gov-blue">{budget.sector}</h3>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-gov-saffron bg-gov-saffron/10 px-2.5 py-1 rounded border border-gov-saffron/20">{budget.year}</span>
-                  </div>
-                  
-                  <div className="space-y-5">
-                    <div className="flex justify-between items-end">
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-gov-blue/40">Allocated Funds</p>
-                        <p className="text-2xl font-display font-bold text-gov-blue">â‚¹{(budget.allocatedAmount / 10000000).toFixed(1)} Cr</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {budgets.map((budget) => (
+                  <div key={budget.id} className="gov-card p-8 space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xl font-bold text-gov-blue">{budget.sector}</h3>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-gov-saffron bg-gov-saffron/10 px-2.5 py-1 rounded border border-gov-saffron/20">{budget.year}</span>
+                    </div>
+                    
+                    <div className="space-y-5">
+                      <div className="flex justify-between items-end">
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-gov-blue/40">Allocated Funds</p>
+                          <p className="text-2xl font-display font-bold text-gov-blue">â‚¹{(budget.allocatedAmount / 10000000).toFixed(1)} Cr</p>
+                        </div>
+                        <div className="text-right space-y-1">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-gov-blue/40">Total Sector Pool</p>
+                          <p className="text-lg font-display font-bold text-gov-blue/60">â‚¹{(budget.totalAmount / 10000000).toFixed(1)} Cr</p>
+                        </div>
                       </div>
-                      <div className="text-right space-y-1">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-gov-blue/40">Total Sector Pool</p>
-                        <p className="text-lg font-display font-bold text-gov-blue/60">â‚¹{(budget.totalAmount / 10000000).toFixed(1)} Cr</p>
+
+                      <div className="h-2.5 bg-gov-blue/5 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gov-blue" 
+                          style={{ width: `${(budget.allocatedAmount / budget.totalAmount) * 100}%` }} 
+                        />
+                      </div>
+
+                      <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gov-blue/40">
+                        <span>Utilization: {((budget.allocatedAmount / budget.totalAmount) * 100).toFixed(1)}%</span>
+                        <span>Unallocated: â‚¹{((budget.totalAmount - budget.allocatedAmount) / 10000000).toFixed(1)} Cr</span>
                       </div>
                     </div>
 
-                    <div className="h-2.5 bg-gov-blue/5 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-gov-blue" 
-                        style={{ width: `${(budget.allocatedAmount / budget.totalAmount) * 100}%` }} 
-                      />
-                    </div>
-
-                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gov-blue/40">
-                      <span>Utilization: {((budget.allocatedAmount / budget.totalAmount) * 100).toFixed(1)}%</span>
-                      <span>Unallocated: â‚¹{((budget.totalAmount - budget.allocatedAmount) / 10000000).toFixed(1)} Cr</span>
-                    </div>
+                    <button 
+                      onClick={() => {
+                        const newAmount = prompt("Enter new allocated amount (in Cr):", (budget.allocatedAmount / 10000000).toString());
+                        if (newAmount) {
+                          onUpdateBudget(budget.id, { allocatedAmount: Number(newAmount) * 10000000 });
+                        }
+                      }}
+                      className="w-full py-3 rounded-xl border border-gov-blue/10 text-xs font-bold uppercase tracking-widest text-gov-blue hover:bg-gov-blue/5 transition-colors"
+                    >
+                      Modify Allocation
+                    </button>
                   </div>
+                ))}
+              </div>
 
-                  <button 
-                    onClick={() => {
-                      const newAmount = prompt("Enter new allocated amount (in Cr):", (budget.allocatedAmount / 10000000).toString());
-                      if (newAmount) {
-                        onUpdateBudget(budget.id, { allocatedAmount: Number(newAmount) * 10000000 });
-                      }
-                    }}
-                    className="w-full py-3 rounded-xl border border-gov-blue/10 text-xs font-bold uppercase tracking-widest text-gov-blue hover:bg-gov-blue/5 transition-colors"
-                  >
-                    Modify Allocation
-                  </button>
+              <div className="gov-card p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold text-gov-blue">Project Budgets (Overall)</h3>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-gov-blue/40">All Active Projects</span>
                 </div>
-              ))}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {projects.map((project) => (
+                    <div key={project.id} className="p-4 rounded-lg border border-gov-blue/10 bg-gov-bg">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-gov-blue/40">{project.sector}</p>
+                          <p className="text-sm font-semibold text-gov-blue">{project.title}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-gov-blue/40">Overall Budget</p>
+                          <p className="text-base font-display font-bold text-gov-blue">{formatCr(project.budget || 0)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </motion.div>
           )}
 
@@ -457,7 +482,7 @@ export const OfficialDashboard: React.FC<OfficialDashboardProps> = ({
                         <img
                           src={complaint.imageUrl}
                           alt="Grievance evidence"
-                          className="w-full h-28 object-cover rounded-lg border border-gov-blue/10"
+                          className="gov-image"
                           referrerPolicy="no-referrer"
                         />
                       )}
@@ -731,3 +756,5 @@ export const OfficialDashboard: React.FC<OfficialDashboardProps> = ({
     </div>
   );
 };
+
+

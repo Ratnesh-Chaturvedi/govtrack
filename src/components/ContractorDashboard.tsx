@@ -361,7 +361,7 @@ export const ContractorDashboard: React.FC<ContractorDashboardProps> = ({ projec
                       <img
                         src={editingProject.proofUrl}
                         alt="Existing proof"
-                        className="w-full h-32 object-cover"
+                        className="gov-image-inset"
                         referrerPolicy="no-referrer"
                       />
                       <div className="px-3 py-2 text-[9px] font-bold uppercase tracking-widest text-gov-blue/50">

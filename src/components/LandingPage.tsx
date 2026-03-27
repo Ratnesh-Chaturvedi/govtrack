@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  ShieldCheck, 
-  ArrowLeft, 
+import {
+  ShieldCheck,
+  ArrowLeft,
   ChevronRight,
   User,
   HardHat,
@@ -71,17 +72,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
     e.preventDefault();
     setLocalError('');
     clearError();
-    
+
     if (!role) {
       setLocalError('Please select a role');
       return;
     }
-    
+
     if (!id.trim()) {
       setLocalError('ID is required');
       return;
     }
-    
+
     if (!password.trim()) {
       setLocalError('Password is required');
       return;
@@ -102,7 +103,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
           setLocalError('Name is required');
           return;
         }
-        
+
         await register({
           name,
           email,
@@ -114,7 +115,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
       } else {
         await login(id, password, role);
       }
-      
+
       // Reset form on success
       setShowLogin(false);
       setStep(1);
@@ -125,7 +126,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
       setPassword('');
       setConfirmPassword('');
       setName('');
-      
+
       // Call onLogin callback with mock values since auth is handled by context
       onLogin(role, id);
     } catch (err: any) {
@@ -134,169 +135,182 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-white selection:bg-gov-saffron/30 font-sans">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 w-full z-[100] bg-white/95 backdrop-blur-lg border-b border-slate-200/50 px-8 py-5 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gov-blue to-gov-blue/80 flex items-center justify-center text-white shadow-md shadow-gov-blue/20">
-            <ShieldCheck className="w-5 h-5" />
+    <div className="min-h-screen bg-slate-50 selection:bg-gov-saffron/30 font-sans text-slate-900">
+      {/* Government Utility Bar */}
+      <div className="w-full bg-gov-blue text-white text-[11px] tracking-widest uppercase">
+        <div className="max-w-7xl mx-auto px-8 py-2 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+          <div className="flex items-center gap-3">
+            <span className="font-semibold">Government of India</span>
+            <span className="text-white/60">-</span>
+            <span className="text-white/70">Ministry of Digital Governance</span>
           </div>
-          <div>
-            <h4 className="font-display font-bold text-gov-blue text-sm leading-tight">Civic Integrity AI</h4>
-            <p className="text-[10px] text-gov-blue/50 font-semibold">National Platform</p>
+          <div className="flex items-center gap-6 text-white/70">
+            <span>Helpdesk: 1800-000-000</span>
+            <span>EN | HI</span>
           </div>
         </div>
-        <div className="hidden md:flex items-center gap-12 text-xs font-semibold uppercase tracking-wider text-gov-blue/60">
-          <a href="#vision" className="hover:text-gov-blue transition-colors duration-300">Vision</a>
-          <a href="#mission" className="hover:text-gov-blue transition-colors duration-300">Mission</a>
-          <a href="#impact" className="hover:text-gov-blue transition-colors duration-300">Impact</a>
-          <button 
-            onClick={() => setShowLogin(true)}
-            className="px-10 py-3 rounded-lg bg-gov-blue text-white font-semibold hover:bg-blue-900 transition-all duration-300 shadow-lg shadow-gov-blue/25 active:scale-95"
-          >
-            Access Portal
-          </button>
+      </div>
+
+      {/* Main Navigation */}
+      <nav className="sticky top-0 z-[100] bg-white/95 backdrop-blur-lg border-b border-slate-200/60 px-8 py-5 shadow-sm">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-11 h-11 rounded-xl bg-gov-blue flex items-center justify-center text-white shadow-md shadow-gov-blue/20">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-display font-bold text-gov-blue text-base leading-tight">Civic Integrity AI</h4>
+              <p className="text-[11px] text-gov-blue/60 font-semibold tracking-widest uppercase">National Transparency Platform</p>
+            </div>
+          </div>
+          <div className="hidden md:flex items-center gap-10 text-[11px] font-semibold uppercase tracking-widest text-gov-blue/60">
+            <a href="#vision" className="hover:text-gov-blue transition-colors duration-300">Vision</a>
+            <a href="#services" className="hover:text-gov-blue transition-colors duration-300">Services</a>
+            <a href="#process" className="hover:text-gov-blue transition-colors duration-300">Process</a>
+            <a href="#impact" className="hover:text-gov-blue transition-colors duration-300">Impact</a>
+            <button
+              onClick={() => setShowLogin(true)}
+              className="px-8 py-2.5 rounded-md bg-gov-blue text-white font-semibold tracking-wide hover:bg-blue-900 transition-all duration-300 shadow-lg shadow-gov-blue/20 active:scale-95"
+            >
+              Access Portal
+            </button>
+          </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative pt-40 pb-24 px-8 overflow-hidden bg-gradient-to-b from-white via-white to-slate-50">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gov-saffron z-50" />
-        <div className="absolute top-1 left-0 w-full h-1 bg-white z-50" />
-        <div className="absolute top-2 left-0 w-full h-1 bg-gov-green z-50" />
-        
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
-          <motion.div 
+      {/* Hero */}
+      <section className="relative pt-20 pb-24 px-8 overflow-hidden bg-gradient-to-b from-white via-slate-50 to-slate-100">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gov-saffron" />
+        <div className="absolute top-1 left-0 w-full h-1 bg-white" />
+        <div className="absolute top-2 left-0 w-full h-1 bg-gov-green" />
+
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="space-y-12"
+            className="space-y-8"
           >
-            <div className="space-y-8">
-              <div className="flex items-center gap-3 text-gov-saffron font-semibold text-xs uppercase tracking-wider">
-                <ShieldCheck className="w-5 h-5" />
-                National Integrity Framework
-              </div>
-              <h1 className="text-6xl md:text-7xl font-display font-bold text-gov-blue leading-[1.05] tracking-tight">
-                Redefining <br />
-                <span className="text-gov-saffron">Trust</span><span className="text-gov-blue">.</span>
-              </h1>
-              <p className="text-lg text-gov-blue/65 leading-[1.7] max-w-lg font-medium">
-                A unified digital platform for transparent governance, real-time resource tracking, and AI-driven corruption risk mitigation.
-              </p>
+            <div className="flex items-center gap-3 text-gov-saffron font-semibold text-xs uppercase tracking-widest">
+              <ShieldCheck className="w-5 h-5" />
+              National Integrity Framework
             </div>
-
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pt-4">
-              <button 
+            <h1 className="text-5xl md:text-6xl font-display font-bold text-gov-blue leading-tight">
+              Official Platform for
+              <span className="block text-gov-saffron">Transparency and Integrity</span>
+            </h1>
+            <p className="text-lg text-gov-blue/70 leading-[1.8] max-w-xl font-medium">
+              A secure, auditable system for public project oversight, budget visibility, and AI-led risk detection across all departments.
+            </p>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+              <button
                 onClick={() => setShowLogin(true)}
-                className="px-10 py-4 rounded-lg bg-gov-blue text-white font-semibold uppercase tracking-wide text-sm hover:bg-blue-900 transition-all duration-300 shadow-lg shadow-gov-blue/30 active:scale-95 flex items-center gap-3"
+                className="px-8 py-3.5 rounded-md bg-gov-blue text-white font-semibold uppercase tracking-wide text-sm hover:bg-blue-900 transition-all duration-300 shadow-lg shadow-gov-blue/25 active:scale-95 flex items-center gap-2"
               >
-                Get Started
+                Access Secure Portal
                 <ChevronRight className="w-4 h-4" />
               </button>
-              <a href="#vision" className="text-sm font-semibold text-gov-blue/50 hover:text-gov-blue transition-colors duration-300 flex items-center gap-2">
-                Learn More
+              <a href="#services" className="text-sm font-semibold text-gov-blue/60 hover:text-gov-blue transition-colors duration-300 flex items-center gap-2">
+                View Services
                 <ArrowUpRight className="w-4 h-4" />
               </a>
             </div>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.98 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
             className="relative"
           >
-            <div className="gov-card p-1 bg-white border-slate-200 shadow-2xl overflow-hidden">
-              <img 
-                src="https://picsum.photos/seed/gov-vision/1200/800" 
-                alt="Governance Vision" 
-                className="w-full rounded-lg grayscale hover:grayscale-0 transition-all duration-700"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-gov-blue/30 to-transparent pointer-events-none rounded-lg" />
-              <div className="absolute bottom-8 left-8 text-white">
-                <p className="text-xs font-semibold uppercase tracking-wider mb-2 opacity-75">Real-time Monitoring</p>
-                <h3 className="text-xl font-display font-bold">Smart Infrastructure Oversight</h3>
-              </div>
-            </div>
-            {/* Floating Stats */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="absolute -bottom-6 -right-6 gov-card p-6 bg-white shadow-2xl border-slate-200 hidden md:block"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-gov-green/10 flex items-center justify-center text-gov-green shadow-sm">
-                  <TrendingUp className="w-7 h-7" />
+            <div className="gov-card p-8 bg-white border-slate-200 shadow-xl">
+              <div className="flex items-center gap-4 pb-6 border-b border-slate-200">
+                <div className="w-12 h-12 rounded-full bg-gov-blue/10 text-gov-blue flex items-center justify-center">
+                  <Eye className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-2xl font-display font-bold text-gov-blue">₹4.2T+</p>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-gov-blue/50">Funds Tracked</p>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-gov-blue/50">National Oversight Brief</p>
+                  <h3 className="text-xl font-display font-bold text-gov-blue">Quarterly Integrity Snapshot</h3>
                 </div>
               </div>
-            </motion.div>
+              <div className="grid grid-cols-2 gap-6 pt-6">
+                {[
+                  { label: 'Funds Tracked', value: 'INR 4.2T+' },
+                  { label: 'Active Projects', value: '18,240' },
+                  { label: 'Compliance Rate', value: '96.4%' },
+                  { label: 'Risk Alerts', value: '412' },
+                ].map((item) => (
+                  <div key={item.label} className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-gov-blue/50">{item.label}</p>
+                    <p className="text-2xl font-display font-bold text-gov-blue">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-8 p-4 rounded-lg bg-slate-50 border border-slate-200 text-sm text-gov-blue/70">
+                Official dashboards for citizens, officials, contractors, and auditors with role-based access controls.
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>
-
-      {/* Vision Section */}
-      <section id="vision" className="py-32 bg-gov-blue text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-gov-saffron/8 skew-x-12 translate-x-1/4" />
-        <div className="max-w-7xl mx-auto px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
-            <div className="space-y-10">
-              <div className="flex items-center gap-3 text-gov-saffron font-semibold text-xs uppercase tracking-wider">
-                <Target className="w-5 h-5" />
-                Our Vision
-              </div>
-              <h2 className="text-5xl md:text-6xl font-display font-bold leading-[1.15]">
-                Transparency is not a goal,<br />
-                <span className="text-gov-saffron font-bold">it's a foundation.</span>
-              </h2>
-              <p className="text-lg text-white/70 leading-[1.7] max-w-lg font-medium">
-                We envision a nation where every rupee of public money is accounted for, every project is delivered with integrity, and every citizen has the power to oversee their community's development.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10 pt-6">
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.1 }}
-                  className="space-y-4"
-                >
-                  <div className="w-12 h-12 rounded-lg bg-white/15 flex items-center justify-center text-gov-saffron backdrop-blur-sm">
-                    <Eye className="w-6 h-6" />
-                  </div>
-                  <h4 className="font-bold uppercase tracking-widest text-sm">Radical Visibility</h4>
-                  <p className="text-sm text-white/60 leading-relaxed">Real-time public access to budget allocations and expenditure data.</p>
-                </motion.div>
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.2 }}
-                  className="space-y-4"
-                >
-                  <div className="w-12 h-12 rounded-lg bg-white/15 flex items-center justify-center text-gov-green backdrop-blur-sm">
-                    <Zap className="w-6 h-6" />
-                  </div>
-                  <h4 className="font-bold uppercase tracking-widest text-sm">AI-Driven Integrity</h4>
-                  <p className="text-sm text-white/60 leading-relaxed">Predictive algorithms to detect corruption risks before they manifest.</p>
-                </motion.div>
-              </div>
+      {/* Vision */}
+      <section id="vision" className="py-24 bg-white px-8">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="space-y-8">
+            <div className="flex items-center gap-3 text-gov-blue font-semibold text-xs uppercase tracking-widest">
+              <Target className="w-5 h-5 text-gov-saffron" />
+              Our Vision
             </div>
-            <div className="relative flex items-center justify-center">
-              <div className="aspect-square rounded-full border border-white/20 flex items-center justify-center p-12">
-                <div className="aspect-square rounded-full border border-white/15 flex items-center justify-center p-12 w-full">
-                  <div className="aspect-square rounded-full bg-white/8 backdrop-blur-sm flex flex-col items-center justify-center text-center p-12 w-full">
-                    <ShieldCheck className="w-20 h-20 text-gov-saffron mb-6 drop-shadow-lg" />
-                    <h3 className="text-2xl font-display font-bold uppercase tracking-wide">Satyameva <br /> Jayate</h3>
+            <h2 className="text-4xl md:text-5xl font-display font-bold text-gov-blue leading-tight">
+              A public system where trust is measurable, transparent, and enforceable.
+            </h2>
+            <p className="text-lg text-gov-blue/70 leading-[1.8] max-w-xl font-medium">
+              Every program and project is tracked end-to-end with accountable decision trails and open performance reporting.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                {
+                  title: 'Open Budgeting',
+                  desc: 'Public access to allocations, releases, and utilization statements.',
+                  icon: Eye,
+                },
+                {
+                  title: 'AI Risk Signals',
+                  desc: 'Proactive detection of anomalies and non-compliance trends.',
+                  icon: Zap,
+                },
+              ].map((item) => (
+                <div key={item.title} className="gov-card p-6 border-slate-200">
+                  <div className="w-10 h-10 rounded-lg bg-gov-blue/10 flex items-center justify-center text-gov-blue mb-4">
+                    <item.icon className="w-5 h-5" />
                   </div>
+                  <h4 className="font-semibold text-gov-blue text-lg">{item.title}</h4>
+                  <p className="text-sm text-gov-blue/60 leading-relaxed mt-2">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="gov-card p-10 bg-gov-blue text-white relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+            <div className="relative space-y-6">
+              <div className="flex items-center gap-3 text-gov-saffron font-semibold text-xs uppercase tracking-widest">
+                <ShieldCheck className="w-5 h-5" />
+                Trust Framework
+              </div>
+              <h3 className="text-3xl font-display font-bold text-white">Satyameva Jayate</h3>
+              <p className="text-white/75 leading-[1.7] text-sm">
+                The platform aligns with national standards for digital governance and ensures auditable trails across all stages of public expenditure.
+              </p>
+              <div className="flex items-center gap-4 text-xs uppercase tracking-widest text-white/70">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-gov-green" />
+                  Section 4(1)(b) Compliance
+                </div>
+                <div className="flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-gov-saffron" />
+                  ISO 27001 Ready
                 </div>
               </div>
             </div>
@@ -304,105 +318,152 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
         </div>
       </section>
 
-      {/* Mission Section */}
-      <section id="mission" className="py-32 px-8 bg-white">
+      {/* Services */}
+      <section id="services" className="py-24 px-8 bg-slate-50">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center space-y-6 mb-24">
-            <p className="text-xs font-semibold uppercase tracking-widest text-gov-blue/50">The Mission</p>
-            <h2 className="text-5xl md:text-6xl font-display font-bold text-gov-blue">Empowering the Public<span className="text-gov-saffron"> Ecosystem</span></h2>
-            <p className="text-lg text-gov-blue/60 max-w-2xl mx-auto font-medium">A tailored experience for every stakeholder in the governance ecosystem</p>
+          <div className="text-center space-y-4 mb-16">
+            <p className="text-xs font-semibold uppercase tracking-widest text-gov-blue/50">Key Services</p>
+            <h2 className="text-4xl md:text-5xl font-display font-bold text-gov-blue">A unified experience for every stakeholder</h2>
+            <p className="text-base text-gov-blue/60 max-w-2xl mx-auto font-medium">
+              Role-based dashboards with secure workflows and verified reporting across departments.
+            </p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               {
-                title: "For Citizens",
-                desc: "Direct oversight of local projects, tax utilization reports, and a secure channel for reporting anomalies.",
+                title: 'Citizen Services',
+                desc: 'Track local projects, submit grievances, and follow resolution timelines.',
                 icon: User,
-                color: "bg-gov-saffron"
+                color: 'bg-gov-saffron',
               },
               {
-                title: "For Officials",
-                desc: "Streamlined budget management, contractor performance tracking, and automated compliance auditing.",
+                title: 'Official Command Center',
+                desc: 'Manage budgets, approvals, and performance metrics with audit trails.',
                 icon: Building2,
-                color: "bg-gov-blue"
+                color: 'bg-gov-blue',
               },
               {
-                title: "For Contractors",
-                desc: "Transparent bidding, real-time progress reporting, and a merit-based trust scoring system.",
+                title: 'Contractor Portal',
+                desc: 'Upload progress updates, verify milestones, and handle compliance.',
                 icon: HardHat,
-                color: "bg-gov-green"
-              }
-            ].map((item, i) => (
-              <motion.div 
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
+                color: 'bg-gov-green',
+              },
+              {
+                title: 'Media and Audit',
+                desc: 'Investigate anomalies and access verified public datasets.',
+                icon: Search,
+                color: 'bg-slate-600',
+              },
+            ].map((item) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.15, duration: 0.5 }}
-                className="gov-card p-10 hover:shadow-lg transition-all duration-300 group border-slate-200 hover:border-slate-300"
+                transition={{ duration: 0.5 }}
+                className="gov-card p-7 bg-white border-slate-200"
               >
-                <div className={cn("w-14 h-14 rounded-lg flex items-center justify-center text-white mb-8 group-hover:scale-110 transition-transform duration-300 shadow-md", item.color)}>
-                  <item.icon className="w-7 h-7" />
+                <div className={cn('w-12 h-12 rounded-md flex items-center justify-center text-white mb-6 shadow-sm', item.color)}>
+                  <item.icon className="w-6 h-6" />
                 </div>
-                <h3 className="text-2xl font-display font-bold text-gov-blue mb-4">{item.title}</h3>
-                <p className="text-gov-blue/65 leading-[1.6] text-sm font-medium">{item.desc}</p>
+                <h3 className="text-lg font-display font-bold text-gov-blue mb-3">{item.title}</h3>
+                <p className="text-sm text-gov-blue/60 leading-[1.7]">{item.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
-
-      {/* Impact Section */}
-      <section id="impact" className="py-32 px-8 bg-slate-50 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
-          <div className="order-2 lg:order-1">
-            <div className="grid grid-cols-2 gap-8">
-              {[
-                { label: "Corruption Risk Reduction", value: "65%", icon: ShieldCheck },
-                { label: "Project Delivery Speed", value: "40%", icon: Zap },
-                { label: "Citizen Engagement", value: "12X", icon: User },
-                { label: "Budget Efficiency", value: "22%", icon: TrendingUp },
-              ].map((stat, i) => (
-                <motion.div 
-                  key={i}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="gov-card p-8 bg-white space-y-4 border-slate-200 shadow-sm hover:shadow-md transition-all"
-                >
-                  <stat.icon className="w-6 h-6 text-gov-blue/30" />
-                  <div>
-                    <p className="text-3xl font-display font-bold text-gov-blue">{stat.value}</p>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-gov-blue/50 mt-1">{stat.label}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-          <div className="order-1 lg:order-2 space-y-10">
-            <div className="flex items-center gap-3 text-gov-green font-semibold text-xs uppercase tracking-wider">
+      {/* Process */}
+      <section id="process" className="py-24 px-8 bg-white">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="space-y-8">
+            <div className="flex items-center gap-3 text-gov-green font-semibold text-xs uppercase tracking-widest">
               <CheckCircle2 className="w-5 h-5" />
-              Measurable Impact
+              Process
             </div>
-            <h2 className="text-5xl md:text-6xl font-display font-bold text-gov-blue leading-[1.15]">
-              Driving Change<br />
-              <span className="text-gov-green">Through Data-Led Integrity</span>
+            <h2 className="text-4xl md:text-5xl font-display font-bold text-gov-blue">
+              From approval to outcomes, every step is verified.
             </h2>
-            <p className="text-lg text-gov-blue/65 leading-[1.7] font-medium max-w-lg">
-              Our platform doesn't just monitor; it transforms. By creating a closed-loop system of accountability, we ensure that every public project serves its intended purpose.
+            <p className="text-lg text-gov-blue/70 leading-[1.8] font-medium">
+              Structured workflows ensure accountability from project initiation through completion.
             </p>
-            <button 
+            <button
               onClick={() => setShowLogin(true)}
-              className="px-10 py-4 rounded-lg bg-gov-blue text-white font-semibold uppercase tracking-wide text-sm hover:bg-blue-900 transition-all duration-300 shadow-lg shadow-gov-blue/30 active:scale-95 inline-block"
+              className="px-8 py-3 rounded-md bg-gov-blue text-white font-semibold uppercase tracking-wide text-sm hover:bg-blue-900 transition-all duration-300 shadow-lg shadow-gov-blue/25 active:scale-95 inline-flex items-center gap-2"
             >
-              Join the Movement
+              Launch Dashboard
+              <ChevronRight className="w-4 h-4" />
             </button>
+          </div>
+          <div className="space-y-6">
+            {[
+              { title: 'Sanction and Allocation', desc: 'Budget approvals are logged with responsible officers and timelines.' },
+              { title: 'Procurement and Vendor Checks', desc: 'Contractor credentials are verified and tender compliance is validated.' },
+              { title: 'Execution Monitoring', desc: 'Progress, expenditures, and site evidence are updated in real time.' },
+              { title: 'Audit and Public Disclosure', desc: 'Final outputs are published with immutable audit trails.' },
+            ].map((stepItem, index) => (
+              <div key={stepItem.title} className="gov-card p-6 border-slate-200 bg-slate-50">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-gov-blue text-white flex items-center justify-center font-semibold">
+                    {index + 1}
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-semibold text-gov-blue">{stepItem.title}</h4>
+                    <p className="text-sm text-gov-blue/60 leading-relaxed mt-1">{stepItem.desc}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
+      {/* Impact */}
+      <section id="impact" className="py-24 px-8 bg-slate-50">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-2 gap-6">
+            {[
+              { label: 'Risk Reduction', value: '65%', icon: ShieldCheck },
+              { label: 'Project Delivery', value: '40%', icon: Zap },
+              { label: 'Citizen Engagement', value: '12X', icon: User },
+              { label: 'Budget Efficiency', value: '22%', icon: TrendingUp },
+            ].map((stat) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, scale: 0.98 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4 }}
+                className="gov-card p-6 bg-white border-slate-200"
+              >
+                <stat.icon className="w-5 h-5 text-gov-blue/40" />
+                <p className="text-2xl font-display font-bold text-gov-blue mt-4">{stat.value}</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-gov-blue/50 mt-2">{stat.label}</p>
+              </motion.div>
+            ))}
+          </div>
+          <div className="space-y-8">
+            <div className="flex items-center gap-3 text-gov-green font-semibold text-xs uppercase tracking-widest">
+              <CheckCircle2 className="w-5 h-5" />
+              Measurable Outcomes
+            </div>
+            <h2 className="text-4xl md:text-5xl font-display font-bold text-gov-blue leading-tight">
+              Data-led governance, visible to every citizen.
+            </h2>
+            <p className="text-lg text-gov-blue/70 leading-[1.8] font-medium">
+              The platform builds continuous accountability by connecting budgets, progress reporting, and public disclosures.
+            </p>
+            <button
+              onClick={() => setShowLogin(true)}
+              className="px-8 py-3 rounded-md bg-gov-blue text-white font-semibold uppercase tracking-wide text-sm hover:bg-blue-900 transition-all duration-300 shadow-lg shadow-gov-blue/25 active:scale-95 inline-flex items-center gap-2"
+            >
+              Request Access
+              <ArrowUpRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </section>
       {/* Login Portal Modal */}
       <AnimatePresence>
         {showLogin && (
@@ -421,7 +482,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               className="relative w-full max-w-2xl gov-card border-slate-200 p-0 shadow-2xl bg-white overflow-hidden"
             >
               {/* Ashoka Chakra Watermark */}
@@ -444,7 +505,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                       {step === 1 ? 'Select your role to continue' : (mode === 'login' ? 'Enter your credentials' : 'Complete your registration')}
                     </p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => {
                       setShowLogin(false);
                       setStep(1);
@@ -459,20 +520,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                   {step === 1 ? (
                     <div className="space-y-8">
                       <div className="flex gap-2">
-                        <button 
+                        <button
                           onClick={() => setMode('login')}
                           className={cn(
-                            "flex-1 px-6 py-3 rounded-lg text-sm font-semibold uppercase tracking-widest transition-all",
-                            mode === 'login' ? "bg-gov-blue text-white shadow-lg shadow-gov-blue/30" : "bg-slate-100 text-gov-blue/60 hover:bg-slate-200"
+                            'flex-1 px-6 py-3 rounded-lg text-sm font-semibold uppercase tracking-widest transition-all',
+                            mode === 'login' ? 'bg-gov-blue text-white shadow-lg shadow-gov-blue/30' : 'bg-slate-100 text-gov-blue/60 hover:bg-slate-200'
                           )}
                         >
                           Secure Login
                         </button>
-                        <button 
+                        <button
                           onClick={() => setMode('register')}
                           className={cn(
-                            "flex-1 px-6 py-3 rounded-lg text-sm font-semibold uppercase tracking-widest transition-all",
-                            mode === 'register' ? "bg-gov-blue text-white shadow-lg shadow-gov-blue/30" : "bg-slate-100 text-gov-blue/60 hover:bg-slate-200"
+                            'flex-1 px-6 py-3 rounded-lg text-sm font-semibold uppercase tracking-widest transition-all',
+                            mode === 'register' ? 'bg-gov-blue text-white shadow-lg shadow-gov-blue/30' : 'bg-slate-100 text-gov-blue/60 hover:bg-slate-200'
                           )}
                         >
                           New Registration
@@ -480,18 +541,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                       </div>
 
                       <div className="space-y-4">
-                        {[
-                          { id: 'citizen', title: 'Citizen', icon: User, desc: 'Monitor projects and file grievances.' },
-                          { id: 'official', title: 'Govt. Official', icon: ShieldCheck, desc: 'Manage budgets and oversee projects.' },
-                          { id: 'contractor', title: 'Contractor', icon: HardHat, desc: 'Update progress and manage contracts.' },
-                          { id: 'media', title: 'Media/Audit', icon: Search, desc: 'Investigate and audit public spending.' },
-                        ].map((r) => (
+                        {roles.map((r) => (
                           <button
                             key={r.id}
-                            onClick={() => {
-                              setRole(r.id as UserRole);
-                              setStep(2);
-                            }}
+                            onClick={() => handleRoleSelect(r.id)}
                             className="w-full flex items-center gap-5 p-5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-all text-left group"
                           >
                             <div className="w-12 h-12 rounded-lg bg-gov-blue/10 flex items-center justify-center text-gov-blue group-hover:bg-gov-blue group-hover:text-white transition-colors shadow-sm">
@@ -508,7 +561,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                     </div>
                   ) : (
                     <div className="space-y-8">
-                      <button 
+                      <button
                         onClick={() => setStep(1)}
                         className="text-sm font-semibold text-gov-blue/50 uppercase tracking-widest flex items-center gap-2 hover:text-gov-blue transition-colors"
                       >
@@ -530,79 +583,78 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                         {mode === 'register' && (
                           <div className="space-y-2">
                             <label className="text-xs font-semibold uppercase tracking-wider text-gov-blue/60">Full Legal Name</label>
-                            <input 
-                              type="text" 
-                              className="gov-input" 
-                              placeholder="As per official ID" 
+                            <input
+                              type="text"
+                              className="gov-input"
+                              placeholder="As per official ID"
                               value={name}
                               onChange={(e) => setName(e.target.value)}
-                              required 
+                              required
                             />
                           </div>
                         )}
-                        
+
                         <div className="space-y-2">
                           <label className="text-xs font-semibold uppercase tracking-wider text-gov-blue/60">
-                            {role === 'citizen' ? 'Aadhaar / Voter ID' : 
-                             role === 'official' ? 'Employee ID' : 
+                            {role === 'citizen' ? 'Aadhaar / Voter ID' :
+                             role === 'official' ? 'Employee ID' :
                              role === 'contractor' ? 'Contractor License ID' : 'Audit License ID'}
                           </label>
-                          <input 
-                            type="text" 
-                            className="gov-input" 
-                            placeholder={role === 'citizen' ? 'CIT-XXXXX' : role === 'official' ? 'GOV-XXXXX' : role === 'contractor' ? 'CON-XXXXX' : 'AUD-XXXXX'} 
+                          <input
+                            type="text"
+                            className="gov-input"
+                            placeholder={role === 'citizen' ? 'CIT-XXXXX' : role === 'official' ? 'GOV-XXXXX' : role === 'contractor' ? 'CON-XXXXX' : 'AUD-XXXXX'}
                             value={id}
                             onChange={(e) => setId(e.target.value)}
-                            required 
+                            required
                           />
                         </div>
 
                         {mode === 'register' && (
                           <div className="space-y-2">
                             <label className="text-xs font-semibold uppercase tracking-wider text-gov-blue/60">Official Email Address</label>
-                            <input 
-                              type="email" 
-                              className="gov-input" 
-                              placeholder="name@organization.gov.in" 
+                            <input
+                              type="email"
+                              className="gov-input"
+                              placeholder="name@organization.gov.in"
                               value={email}
                               onChange={(e) => setEmail(e.target.value)}
-                              required 
+                              required
                             />
                           </div>
                         )}
 
                         {/* Login uses ID + Password only */}
-
                         <div className="space-y-2">
                           <label className="text-xs font-semibold uppercase tracking-wider text-gov-blue/60">Security PIN / Password</label>
-                          <input 
-                            type="password" 
-                            title="Enter your password" 
-                            placeholder="••••••••" 
-                            className="gov-input" 
+                          <input
+                            type="password"
+                            title="Enter your password"
+                            placeholder="********"
+                            className="gov-input"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            required 
+                            required
                           />
                         </div>
 
                         {mode === 'register' && (
                           <div className="space-y-2">
                             <label className="text-xs font-semibold uppercase tracking-wider text-gov-blue/60">Confirm Password</label>
-                            <input 
-                              type="password" 
-                              title="Confirm your password" 
-                              placeholder="••••••••" 
-                              className="gov-input" 
+                            <input
+                              type="password"
+                              title="Confirm your password"
+                              placeholder="********"
+                              className="gov-input"
                               value={confirmPassword}
                               onChange={(e) => setConfirmPassword(e.target.value)}
-                              required 
+                              required
                             />
                           </div>
                         )}
-                        
+
                         <div className="pt-4">
-                          <button 
+                          <button
                             type="submit"
                             disabled={isLoading}
                             className="w-full gov-button-primary py-4 text-sm font-semibold shadow-lg shadow-gov-blue/25 flex items-center justify-center gap-2 hover:bg-blue-900 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
@@ -620,10 +672,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                             )}
                           </button>
                         </div>
-                        
+
                         <p className="text-xs text-center text-gov-blue/50 leading-relaxed">
-                          {mode === 'login' ? 
-                            'Unauthorized access is strictly prohibited under the IT Act 2000.' : 
+                          {mode === 'login' ?
+                            'Unauthorized access is strictly prohibited under the IT Act 2000.' :
                             'By registering, you agree to the National Data Privacy Policy and the Civic Integrity Code of Conduct.'}
                         </p>
 
@@ -633,7 +685,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                             onClick={() => { setMode('register'); setLocalError(''); setEmail(''); setPassword(''); setConfirmPassword(''); }}
                             className="w-full py-3 text-sm font-semibold text-gov-blue hover:bg-gov-blue/5 transition-colors rounded-lg"
                           >
-                            Don't have an account? Register here
+                            Do not have an account? Register here
                           </button>
                         )}
 
@@ -658,8 +710,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
 
       {/* Footer Info */}
       <footer className="bg-gov-blue text-white py-16 px-8 border-t border-white/10">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-16">
-          <div className="col-span-1 md:col-span-2 space-y-6">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
+          <div className="col-span-1 md:col-span-2 space-y-5">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-white/15 flex items-center justify-center text-white">
                 <ShieldCheck className="w-5 h-5" />
@@ -667,14 +719,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
               <h4 className="font-display font-bold text-lg">Civic Integrity AI</h4>
             </div>
             <p className="text-white/60 text-sm leading-[1.7] max-w-sm font-medium">
-              An initiative by the Ministry of Digital Governance to ensure transparency, accountability, and integrity in public resource utilization through advanced AI oversight.
+              A national initiative to ensure transparency, accountability, and integrity in public resource utilization through secure AI oversight.
             </p>
             <div className="text-xs text-white/40 pt-2">
-              © 2026 National Digital Governance Platform. All rights reserved.
+              Copyright 2026 National Digital Governance Platform. All rights reserved.
             </div>
           </div>
-          <div className="space-y-6">
-            <h5 className="text-sm font-bold uppercase tracking-widest text-gov-saffron">Resources</h5>
+          <div className="space-y-5">
+            <h5 className="text-xs font-bold uppercase tracking-widest text-gov-saffron">Resources</h5>
             <ul className="space-y-3 text-sm text-white/70">
               <li className="hover:text-white cursor-pointer transition-colors duration-300 font-medium">RTI Portal</li>
               <li className="hover:text-white cursor-pointer transition-colors duration-300 font-medium">Audit Reports</li>
@@ -682,8 +734,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
               <li className="hover:text-white cursor-pointer transition-colors duration-300 font-medium">Grievance Cell</li>
             </ul>
           </div>
-          <div className="space-y-6">
-            <h5 className="text-sm font-bold uppercase tracking-widest text-gov-saffron">Legal</h5>
+          <div className="space-y-5">
+            <h5 className="text-xs font-bold uppercase tracking-widest text-gov-saffron">Legal</h5>
             <ul className="space-y-3 text-sm text-white/70">
               <li className="hover:text-white cursor-pointer transition-colors duration-300 font-medium">Privacy Policy</li>
               <li className="hover:text-white cursor-pointer transition-colors duration-300 font-medium">Terms of Use</li>
@@ -692,8 +744,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
             </ul>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto mt-20 pt-10 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 text-[10px] font-bold uppercase tracking-widest text-white/20">
-          <span>© 2026 Ministry of Digital Governance • Government of India</span>
+        <div className="max-w-7xl mx-auto mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6 text-[10px] font-bold uppercase tracking-widest text-white/30">
+          <span>2026 Ministry of Digital Governance - Government of India</span>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-gov-green animate-pulse" />
             System Status: Operational

@@ -114,12 +114,12 @@ export const PlatformInfo: React.FC = () => {
           </div>
         </div>
 
-        <div className="relative">
+        <div className="relative max-w-[520px] mx-auto w-full">
           <div className="aspect-square rounded-[40px] overflow-hidden border border-gov-blue/10 shadow-2xl">
             <img 
               src="https://picsum.photos/seed/integrity/800/800" 
               alt="Governance" 
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain bg-gov-bg"
               referrerPolicy="no-referrer"
             />
           </div>

@@ -187,7 +187,7 @@ export const Community: React.FC<CommunityProps> = ({ projects }) => {
                   {post.content}
                 </p>
                 {post.videoUrl ? (
-                  <div className="aspect-video rounded-2xl bg-gov-bg overflow-hidden mb-6 relative group border border-gov-blue/5">
+                  <div className="aspect-video max-w-[720px] mx-auto rounded-2xl bg-gov-bg overflow-hidden mb-6 relative group border border-gov-blue/5">
                     <video
                       src={post.videoUrl}
                       controls
@@ -195,11 +195,11 @@ export const Community: React.FC<CommunityProps> = ({ projects }) => {
                     />
                   </div>
                 ) : post.imageUrl && (
-                  <div className="aspect-video rounded-2xl bg-gov-bg overflow-hidden mb-6 relative group border border-gov-blue/5">
+                  <div className="aspect-video max-w-[720px] mx-auto rounded-2xl bg-gov-bg overflow-hidden mb-6 relative group border border-gov-blue/5">
                     <img 
                       src={post.imageUrl} 
                       alt="Ground Report" 
-                      className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700"
+                      className="w-full h-full object-contain bg-gov-bg opacity-95"
                       referrerPolicy="no-referrer"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-gov-blue/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">

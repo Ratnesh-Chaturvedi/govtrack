@@ -283,7 +283,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
                         <img
                           src={project.proofUrl}
                           alt="Work verification proof"
-                          className="w-full h-32 object-cover"
+                          className="gov-image-inset"
                           referrerPolicy="no-referrer"
                         />
                         <div className="px-3 py-2 text-[9px] font-bold uppercase tracking-widest text-slate-500">
@@ -389,7 +389,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
                     <img
                       src={complaint.imageUrl}
                       alt="Grievance evidence"
-                      className="w-full h-24 object-cover rounded-lg border border-slate-200"
+                      className="gov-image"
                       referrerPolicy="no-referrer"
                     />
                   )}
@@ -595,7 +595,7 @@ export const CitizenDashboard: React.FC<CitizenDashboardProps> = ({
                       <img
                         src={editingComplaint.imageUrl}
                         alt="Current evidence"
-                        className="mt-3 w-full h-32 object-cover rounded-lg border border-slate-200"
+                        className="mt-3 gov-image"
                         referrerPolicy="no-referrer"
                       />
                     )}
